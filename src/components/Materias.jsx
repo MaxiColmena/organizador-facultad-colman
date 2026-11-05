@@ -1,0 +1,131 @@
+import { DIAS, HORARIO, MATERIAS, TIPOS_EVENTO, materiaById } from '../data/materias'
+import { useStore } from '../lib/store'
+import { Fecha, Icon, Progreso, Vacio } from './ui'
+import { todayISO } from '../lib/dates'
+import TareaItem from './TareaItem'
+
+const ESTADOS = { cursando: 'Cursando', regular: 'En riesgo', aprobada: 'Aprobada' }
+
+export default function Materias({ seleccion, setSeleccion, abrirTarea, abrirEvento }) {
+  const { state } = useStore()
+  if (seleccion) return <Detalle id={seleccion} volver={() => setSeleccion(null)} abrirTarea={abrirTarea} abrirEvento={abrirEvento} />
+
+  const aprobadas = MATERIAS.filter((m) => state.materiasMeta[m.id]?.estado === 'aprobada').length
+  return (
+    <div className="page">
+      <div className="page-head">
+        <div>
+          <h1>Materias</h1>
+          <p className="muted">{aprobadas}/8 aprobadas</p>
+        </div>
+      </div>
+      <Progreso valor={aprobadas} total={8} />
+      <div className="materias-grid">
+        {MATERIAS.map((m) => {
+          const ts = state.tareas.filter((t) => t.materia === m.id)
+          const ok = ts.filter((t) => t.estado === 'completada').length
+          const meta = state.materiasMeta[m.id] || {}
+          const prox = state.eventos.filter((e) => e.materia === m.id && !e.hecho && (e.fechaFin || e.fecha) >= todayISO()).sort((a, b) => a.fecha.localeCompare(b.fecha))[0]
+          return (
+            <article key={m.id} className="materia-card" style={{ '--c': m.color }} onClick={() => setSeleccion(m.id)}>
+              <div className="mc-top">
+                <span className={`pill pill-${meta.estado || 'cursando'}`}>{ESTADOS[meta.estado || 'cursando']}</span>
+                <span className="muted small">{ok}/{ts.length} tareas</span>
+              </div>
+              <h3>{m.nombre}</h3>
+              <p className="muted small">{meta.evaluacion || m.evaluacion}</p>
+              {prox && <div className="mc-prox"><Fecha fecha={prox.fecha} fechaFin={prox.fechaFin} /> <span>{prox.titulo}</span></div>}
+              <Progreso valor={ok} total={ts.length} color={m.color} />
+              <div className="mc-actions" onClick={(e) => e.stopPropagation()}>
+                <button className="btn btn-ghost btn-sm" onClick={() => abrirTarea(null, { materia: m.id })}><Icon name="plus" size={14} /> Tarea</button>
+                <button className="btn btn-ghost btn-sm" onClick={() => abrirEvento(null, { materia: m.id })}><Icon name="cal" size={14} /> Fecha</button>
+              </div>
+            </article>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function Detalle({ id, volver, abrirTarea, abrirEvento }) {
+  const { state, guardarMeta, toggleEvento } = useStore()
+  const m = materiaById(id)
+  const meta = state.materiasMeta[id] || {}
+  const ts = state.tareas.filter((t) => t.materia === id).sort((a, b) => (a.estado === b.estado ? (a.fecha || '9').localeCompare(b.fecha || '9') : a.estado === 'completada' ? 1 : -1))
+  const ok = ts.filter((t) => t.estado === 'completada').length
+  const evs = state.eventos.filter((e) => e.materia === id).sort((a, b) => a.fecha.localeCompare(b.fecha))
+  const horas = HORARIO.filter((h) => h.materia === id)
+
+  return (
+    <div className="page" style={{ '--c': m.color }}>
+      <button className="link back" onClick={volver}><Icon name="left" size={16} /> Materias</button>
+      <div className="detalle-head">
+        <i className="bar" />
+        <div>
+          <h1>{m.nombre}</h1>
+          <p className="muted">{horas.map((h) => `${DIAS[h.dia]} ${h.inicio}–${h.fin}`).join(' · ')}</p>
+        </div>
+      </div>
+
+      <div className="grid-2">
+        <section className="card">
+          <h3>Situación</h3>
+          <div className="form">
+            <div className="row2">
+              <label>
+                Estado
+                <select value={meta.estado || 'cursando'} onChange={(e) => guardarMeta(id, { estado: e.target.value })}>
+                  {Object.entries(ESTADOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select>
+              </label>
+              <label>
+                Asistencia %
+                <input type="number" min="0" max="100" value={meta.asistencia ?? ''} placeholder="—" onChange={(e) => guardarMeta(id, { asistencia: e.target.value })} />
+              </label>
+            </div>
+            <label>
+              Forma de evaluación
+              <input value={meta.evaluacion ?? m.evaluacion} onChange={(e) => guardarMeta(id, { evaluacion: e.target.value })} />
+            </label>
+            <label>
+              Notas / requisitos
+              <textarea rows={3} value={meta.notas || ''} placeholder="Notas de parciales, lo que pide el profe, etc." onChange={(e) => guardarMeta(id, { notas: e.target.value })} />
+            </label>
+          </div>
+        </section>
+
+        <section className="card">
+          <div className="card-head">
+            <h3>Fechas</h3>
+            <button className="btn btn-ghost btn-sm" onClick={() => abrirEvento(null, { materia: id })}><Icon name="plus" size={14} /> Fecha</button>
+          </div>
+          {evs.length === 0 ? <Vacio>Sin fechas.</Vacio> : (
+            <ul className="lista">
+              {evs.map((e) => (
+                <li key={e.id} className={`evento ${e.hecho ? 'done' : ''}`}>
+                  <button className={`checkbox ${e.hecho ? 'on' : ''}`} onClick={() => toggleEvento(e.id)} aria-label="Marcar rendido">{e.hecho && <Icon name="check" size={14} />}</button>
+                  <div onClick={() => abrirEvento(e)} className="grow">
+                    <div className="li-title">{e.titulo}{e.tentativo && <em> (a confirmar)</em>}</div>
+                    <div className="li-meta"><span className="muted small">{TIPOS_EVENTO[e.tipo]}</span> <Fecha fecha={e.fecha} fechaFin={e.fechaFin} /></div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      <section className="card">
+        <div className="card-head">
+          <h3>Tareas <span className="muted small">{ok}/{ts.length}</span></h3>
+          <button className="btn btn-primary btn-sm" onClick={() => abrirTarea(null, { materia: id })}><Icon name="plus" size={14} /> Nueva tarea</button>
+        </div>
+        <Progreso valor={ok} total={ts.length} color={m.color} />
+        {ts.length === 0 ? <Vacio>Todavía no cargaste tareas para esta materia.</Vacio> : (
+          <ul className="tareas">{ts.map((t) => <TareaItem key={t.id} t={t} onEdit={abrirTarea} mostrarMateria={false} />)}</ul>
+        )}
+      </section>
+    </div>
+  )
+}

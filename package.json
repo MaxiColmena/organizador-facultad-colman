@@ -1,0 +1,25 @@
+{
+  "name": "organizador-facultad-colman",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Organizador de materias, tareas y fechas — TS-DSM 2º año, 2º cuatrimestre",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.119.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.7.0",
+    "vite": "^5.4.21"
+  }
+}
