@@ -2,6 +2,10 @@
 
 Landing/app para organizar el 2º cuatrimestre de la **Tecnicatura Superior en Desarrollo de Software Multiplataforma** (2º año, Instituto Politécnico) hasta la **defensa pública del 1 al 4 de diciembre**.
 
+## Links
+- App (GitHub Pages): https://maxicolmena.github.io/organizador-facultad-colman/
+- Render: https://organizador-facultad-colman.onrender.com · health: https://organizador-facultad-colman.onrender.com/health
+
 ## Qué tiene
 - **Inicio:** cuenta regresiva a la defensa, alertas (vencidas o a ≤ 3 días), clases de hoy, próximas fechas, progreso por materia.
 - **Materias (8):** estado (cursando / en riesgo / aprobada), asistencia, forma de evaluación, notas, fechas y tareas.
