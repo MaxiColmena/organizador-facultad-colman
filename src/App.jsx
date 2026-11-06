@@ -82,7 +82,10 @@ export default function App() {
           <span className="logo">TS</span>
           <strong>Organizador</strong>
         </div>
-        <button className="icon-btn" onClick={() => ir('ajustes')} aria-label="Ajustes"><Icon name="gear" /></button>
+        <button className={`top-sync sync-${sync}`} onClick={() => ir('ajustes')} aria-label="Ajustes y sincronización">
+          <i /> {{ local: 'Local', offline: 'Sin sesión', syncing: 'Sync…', ok: 'Sincronizado', error: 'Error sync' }[sync]}
+          <Icon name="gear" />
+        </button>
       </header>
 
       <main>
@@ -103,7 +106,7 @@ export default function App() {
         ))}
       </nav>
 
-      <button className="fab" onClick={() => abrirTarea()} aria-label="Nueva tarea"><Icon name="plus" size={24} /></button>
+      {vista !== 'ajustes' && <button className="fab" onClick={() => abrirTarea()} aria-label="Nueva tarea"><Icon name="plus" size={24} /></button>}
 
       {modal?.tipo === 'tarea' && <TareaForm tarea={modal.item} materiaInicial={modal.init.materia} fechaInicial={modal.init.fecha} onClose={cerrar} />}
       {modal?.tipo === 'evento' && <EventoForm evento={modal.item} materiaInicial={modal.init.materia} fechaInicial={modal.init.fecha} onClose={cerrar} />}

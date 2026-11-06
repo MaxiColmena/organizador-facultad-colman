@@ -288,3 +288,10 @@ legend { font-size: .82rem; color: var(--muted); padding: 0 6px; }
   .tarea-actions { flex-direction: column; }
   .filtros .seg { width: 100%; } .filtros .seg button { flex: 1; }
 }
+
+.warn-text { color: var(--warn); margin: 0; }
+.top-sync { display: flex; align-items: center; gap: 8px; font-size: .75rem; color: var(--muted); padding: 6px 8px; border-radius: 8px; }
+.top-sync i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.top-sync.sync-ok i { background: var(--ok); } .top-sync.sync-syncing i { background: var(--warn); } .top-sync.sync-error i { background: var(--danger); }
+.top-sync.sync-offline { color: var(--warn); } .top-sync.sync-offline i { background: var(--warn); }
+.top-sync.sync-error { color: var(--danger); }

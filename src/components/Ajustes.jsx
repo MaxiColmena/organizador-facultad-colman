@@ -5,7 +5,7 @@ import { notificar } from '../lib/alertas'
 import { Icon } from './ui'
 
 export default function Ajustes() {
-  const { state, importar, guardarAjustes, user, sync } = useStore()
+  const { state, importar, guardarAjustes, user, sync, syncError, syncNow } = useStore()
   const [perm, setPerm] = useState(() => ('Notification' in window ? Notification.permission : 'unsupported'))
   const [email, setEmail] = useState('')
   const [pass, setPass] = useState('')
@@ -74,10 +74,15 @@ export default function Ajustes() {
         ) : user ? (
           <>
             <p className="small">Conectado como <strong>{user.email}</strong> · estado: <span className={sync === 'error' ? 'error' : 'ok'}>{{ ok: 'sincronizado', syncing: 'sincronizando…', error: 'error de sync' }[sync] || sync}</span></p>
-            <button className="btn btn-ghost" onClick={() => supabase.auth.signOut()}>Cerrar sesión</button>
+            {syncError && <p className="error small">Error: {syncError}</p>}
+            <div className="row-gap">
+              <button className="btn btn-primary" onClick={syncNow}>Sincronizar ahora</button>
+              <button className="btn btn-ghost" onClick={() => supabase.auth.signOut()}>Cerrar sesión</button>
+            </div>
           </>
         ) : (
           <div className="form">
+            <p className="small warn-text">No iniciaste sesión: lo que cargues queda solo en este dispositivo. Ingresá con el mismo usuario en la PC y en el celular.</p>
             <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
             <input type="password" placeholder="Contraseña (mín. 6)" value={pass} onChange={(e) => setPass(e.target.value)} />
             <div className="row-gap">
