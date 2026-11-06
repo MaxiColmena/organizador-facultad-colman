@@ -12,7 +12,7 @@ export function vencimientos(state) {
     if (e.hecho) continue
     const fin = e.fechaFin || e.fecha
     if (fin < todayISO()) continue
-    items.push({ id: e.id, clase: 'evento', titulo: e.titulo, materia: e.materia, fecha: e.fecha, fechaFin: e.fechaFin, tipo: e.tipo, tentativo: e.tentativo })
+    items.push({ id: e.id, clase: 'evento', titulo: e.titulo, materia: e.materia, fecha: e.fecha, fechaFin: e.fechaFin, tipo: e.tipo, tentativo: e.tentativo, importancia: e.importancia })
   }
   return items.sort((a, b) => a.fecha.localeCompare(b.fecha))
 }

@@ -3,6 +3,7 @@ import { useStore } from '../lib/store'
 import { alertas, vencimientos, nivel } from '../lib/alertas'
 import { daysUntil } from '../lib/dates'
 import { Fecha, Icon, MateriaTag, Progreso, Vacio } from './ui'
+import { iconoEvento } from './EventoForm'
 
 export default function Inicio({ ir, abrirTarea, abrirEvento }) {
   const { state } = useStore()
@@ -57,7 +58,7 @@ export default function Inicio({ ir, abrirTarea, abrirEvento }) {
                 <li key={v.id} className={`alerta alerta-${nivel(v.fecha, v.fechaFin)}`} onClick={() => abrir(v)}>
                   <Icon name="alert" size={16} />
                   <div>
-                    <div className="li-title">{v.titulo}{v.tentativo && <em> (a confirmar)</em>}</div>
+                    <div className="li-title">{v.clase === 'evento' ? iconoEvento(v) : ''}{v.titulo}{v.tentativo && <em> (a confirmar)</em>}</div>
                     <div className="li-meta"><MateriaTag id={v.materia} /> <Fecha fecha={v.fecha} fechaFin={v.fechaFin} /></div>
                   </div>
                 </li>
@@ -97,7 +98,7 @@ export default function Inicio({ ir, abrirTarea, abrirEvento }) {
             {prox.map((v) => (
               <li key={v.id} onClick={() => abrir(v)}>
                 <Fecha fecha={v.fecha} fechaFin={v.fechaFin} />
-                <span className="li-title">{v.titulo}{v.tentativo && <em> (a confirmar)</em>}</span>
+                <span className="li-title">{v.clase === 'evento' ? iconoEvento(v) : ''}{v.titulo}{v.tentativo && <em> (a confirmar)</em>}</span>
                 <MateriaTag id={v.materia} />
               </li>
             ))}

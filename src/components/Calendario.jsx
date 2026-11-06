@@ -4,6 +4,7 @@ import { useStore } from '../lib/store'
 import { MESES_LARGO, fmtFecha, inRange, toISO, todayISO } from '../lib/dates'
 import { Icon, MateriaTag, Vacio } from './ui'
 import TareaItem from './TareaItem'
+import { colorEvento, iconoEvento } from './EventoForm'
 
 const SEM = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 
@@ -58,7 +59,7 @@ export default function Calendario({ abrirTarea, abrirEvento }) {
       <div className="page-head">
         <h1>Calendario</h1>
         <div className="row-gap">
-          <button className="btn btn-ghost" onClick={() => abrirEvento(null, { fecha: sel })}><Icon name="cal" size={16} /> Evento</button>
+          <button className="btn btn-ghost" onClick={() => abrirEvento(null)}><Icon name="cal" size={16} /> Evento</button>
           <button className="btn btn-primary" onClick={() => abrirTarea(null, { fecha: sel })}><Icon name="plus" size={16} /> Tarea</button>
         </div>
       </div>
@@ -95,7 +96,7 @@ export default function Calendario({ abrirTarea, abrirEvento }) {
                   <span className="cal-num">{Number(iso.slice(8))}</span>
                   <div className="cal-items">
                     {its.slice(0, 3).map((it) => {
-                      const c = materiaById(it.materia)?.color || 'var(--cyan)'
+                      const c = it.clase === 'evento' ? colorEvento(it) : materiaById(it.materia)?.color || 'var(--cyan)'
                       const done = it.estado === 'completada' || it.hecho
                       const multi = it.clase === 'evento' && it.fechaFin && it.fechaFin !== it.fecha
                       const lunes = new Date(iso + 'T12:00').getDay() === 1
@@ -109,13 +110,13 @@ export default function Calendario({ abrirTarea, abrirEvento }) {
                           style={{ '--c': c }}
                           title={it.titulo}
                         >
-                          {conTitulo ? it.titulo : '\u00a0'}
+                          {conTitulo ? (it.clase === 'evento' ? iconoEvento(it) : '') + it.titulo : '\u00a0'}
                         </span>
                       )
                     })}
                     {its.length > 3 && <span className="cal-more">+{its.length - 3}</span>}
                   </div>
-                  <span className="cal-dots">{its.slice(0, 4).map((it) => <i key={it.id} style={{ background: materiaById(it.materia)?.color || 'var(--cyan)' }} />)}</span>
+                  <span className="cal-dots">{its.slice(0, 4).map((it) => <i key={it.id} style={{ background: it.clase === 'evento' ? colorEvento(it) : materiaById(it.materia)?.color || 'var(--cyan)' }} />)}</span>
                 </button>
               )
             })}
@@ -128,12 +129,12 @@ export default function Calendario({ abrirTarea, abrirEvento }) {
           {selEventos.length > 0 && (
             <ul className="lista">
               {selEventos.map((e) => (
-                <li key={e.id} className={`evento ${e.hecho ? 'done' : ''}`} onClick={() => abrirEvento(e)}>
-                  <Icon name="alert" size={16} />
+                <li key={e.id} className={`evento ev-color ${e.hecho ? 'done' : ''}`} style={{ '--c': colorEvento(e) }} onClick={() => abrirEvento(e)}>
+                  <Icon name="cal" size={16} />
                   <div>
-                    <div className="li-title">{e.titulo}{e.tentativo && <em> (a confirmar)</em>}</div>
+                    <div className="li-title">{iconoEvento(e)}{e.titulo}{e.tentativo && <em> (a confirmar)</em>}</div>
                     <div className="li-meta"><MateriaTag id={e.materia} /> <span className="muted small">{TIPOS_EVENTO[e.tipo]}</span>{e.fechaFin && e.fechaFin !== e.fecha && <span className="muted small">{fmtFecha(e.fecha)} → {fmtFecha(e.fechaFin)}</span>}</div>
-                    {e.nota && <p className="muted small">{e.nota}</p>}
+                    {e.nota && <p className="muted small nota">{e.nota}</p>}
                   </div>
                 </li>
               ))}

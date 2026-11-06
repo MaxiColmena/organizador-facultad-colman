@@ -6,6 +6,7 @@ import { todayISO } from '../lib/dates'
 import { Fecha, Icon, Modal, Progreso, Vacio } from './ui'
 import TareaItem from './TareaItem'
 import Documentacion from './Documentacion'
+import { iconoEvento } from './EventoForm'
 
 const ESTADOS = { cursando: 'Cursando', regular: 'En riesgo' }
 
@@ -193,7 +194,7 @@ function Detalle({ id, volver, abrirTarea, abrirEvento, aprobar }) {
                 <li key={e.id} className={`evento ${e.hecho ? 'done' : ''}`}>
                   <button className={`checkbox ${e.hecho ? 'on' : ''}`} onClick={() => toggleEvento(e.id)} aria-label="Marcar rendido">{e.hecho && <Icon name="check" size={14} />}</button>
                   <div onClick={() => abrirEvento(e)} className="grow">
-                    <div className="li-title">{e.titulo}{e.tentativo && <em> (a confirmar)</em>}</div>
+                    <div className="li-title">{iconoEvento(e)}{e.titulo}{e.tentativo && <em> (a confirmar)</em>}</div>
                     <div className="li-meta"><span className="muted small">{TIPOS_EVENTO[e.tipo]}</span> <Fecha fecha={e.fecha} fechaFin={e.fechaFin} /></div>
                   </div>
                 </li>
