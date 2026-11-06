@@ -17,10 +17,17 @@ const estadoInicial = () => ({
   borrados: {}, // { [id]: timestamp } para que un borrado se propague
 })
 
+// Suma eventos predefinidos nuevos (ej. cierre de cuatrimestre) a datos ya existentes, salvo que se hayan borrado.
+function agregarFaltantes(st) {
+  const ids = new Set(st.eventos.map((e) => e.id))
+  const faltan = EVENTOS_INICIALES.filter((e) => !ids.has(e.id) && !st.borrados?.[e.id])
+  return faltan.length ? { ...st, eventos: [...st.eventos, ...faltan] } : st
+}
+
 function cargarLocal() {
   try {
     const raw = localStorage.getItem(KEY)
-    if (raw) return { ...estadoInicial(), ...JSON.parse(raw) }
+    if (raw) return agregarFaltantes({ ...estadoInicial(), ...JSON.parse(raw) })
   } catch {}
   return estadoInicial()
 }
@@ -175,6 +182,23 @@ export function StoreProvider({ children }) {
       borrarEvento: (id) => mutate((s) => ({ ...s, eventos: s.eventos.filter((e) => e.id !== id), borrados: { ...s.borrados, [id]: now() } })),
       guardarMeta: (materia, patch) =>
         mutate((s) => ({ ...s, materiasMeta: { ...s.materiasMeta, [materia]: { ...s.materiasMeta[materia], ...patch, upd: now() } } })),
+      aprobarMateria: (materia, aprobada) =>
+        mutate((s) => ({
+          ...s,
+          materiasMeta: { ...s.materiasMeta, [materia]: { ...s.materiasMeta[materia], estado: aprobada ? 'aprobada' : 'cursando', aprobadaEn: aprobada ? now() : null, upd: now() } },
+        })),
+      agregarDocMateria: (materia, doc) =>
+        mutate((s) => {
+          const m = s.materiasMeta[materia] || {}
+          return { ...s, materiasMeta: { ...s.materiasMeta, [materia]: { ...m, docs: [...(m.docs || []), doc], upd: now() } } }
+        }),
+      quitarDocMateria: (materia, docId) =>
+        mutate((s) => {
+          const m = s.materiasMeta[materia] || {}
+          const d = (m.docs || []).find((x) => x.id === docId)
+          if (d && !d.url) borrarArchivo(d, user?.id)
+          return { ...s, materiasMeta: { ...s.materiasMeta, [materia]: { ...m, docs: (m.docs || []).filter((x) => x.id !== docId), upd: now() } } }
+        }),
       guardarAjustes: (patch) => mutate((s) => ({ ...s, ajustes: { ...s.ajustes, ...patch, upd: now() } })),
       importar: (data) => mutate(() => ({ ...estadoInicial(), ...data })),
     }),

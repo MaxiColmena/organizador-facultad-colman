@@ -11,6 +11,7 @@ export default function Inicio({ ir, abrirTarea, abrirEvento }) {
   const prox = vencimientos(state).filter((v) => daysUntil(v.fecha) > (state.ajustes?.diasAviso ?? 3)).slice(0, 6)
   const total = state.tareas.length
   const hechas = state.tareas.filter((t) => t.estado === 'completada').length
+  const aprobadas = MATERIAS.filter((m) => state.materiasMeta[m.id]?.estado === 'aprobada').length
 
   const hoy = new Date()
   const dia = hoy.getDay()
@@ -39,8 +40,8 @@ export default function Inicio({ ir, abrirTarea, abrirEvento }) {
           <Icon name="cap" size={28} />
           <strong>{Math.max(diasGrad, 0)}</strong>
           <span>días para recibirte</span>
-          <Progreso valor={hechas} total={total} />
-          <small>{hechas}/{total} tareas completadas</small>
+          <Progreso valor={aprobadas} total={8} color="var(--ok)" />
+          <small>{aprobadas}/8 materias aprobadas · {hechas}/{total} tareas</small>
         </div>
       </section>
 
@@ -113,6 +114,13 @@ export default function Inicio({ ir, abrirTarea, abrirEvento }) {
           {MATERIAS.map((m) => {
             const ts = state.tareas.filter((t) => t.materia === m.id)
             const ok = ts.filter((t) => t.estado === 'completada').length
+            if (state.materiasMeta[m.id]?.estado === 'aprobada')
+              return (
+                <div key={m.id} className="mini-materia aprobada">
+                  <span className="mm-name">{m.corto}</span>
+                  <span className="mm-ok"><Icon name="check" size={14} /></span>
+                </div>
+              )
             return (
               <button key={m.id} className="mini-materia" style={{ '--c': m.color }} onClick={() => ir('materias', m.id)}>
                 <span className="mm-name">{m.corto}</span>

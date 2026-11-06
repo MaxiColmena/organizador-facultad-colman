@@ -46,7 +46,7 @@ export const MATERIAS = [
     id: 'ia',
     nombre: 'Seminario de Actualización Complementario – Modelos y Aplicaciones de la IA',
     corto: 'Modelos de IA',
-    color: '#ef4444',
+    color: '#f472b6',
     evaluacion: 'A definir',
   },
   {
@@ -86,6 +86,9 @@ export const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Vier
 export const GRADUACION = { inicio: '2026-12-01', fin: '2026-12-04' }
 
 export const TIPOS_EVENTO = {
+  institucional: 'Institucional (cierre, inscripción…)',
+  periodo: 'Período (varios días)',
+  feriado: 'Feriado / Sin clases',
   examen: 'Examen / Parcial',
   recuperatorio: 'Recuperatorio',
   entrega: 'Entrega / TP',
@@ -101,5 +104,6 @@ export const EVENTOS_INICIALES = [
   { id: 'ev-ciber', titulo: 'Trabajo evaluativo de Ciberseguridad', materia: 'ciber', fecha: '2026-11-13', tipo: 'entrega' },
   { id: 'ev-tlp-p2', titulo: 'Segundo parcial TLP IV', materia: 'tlp4', fecha: '2026-11-17', fechaFin: '2026-11-18', tipo: 'examen' },
   { id: 'ev-tlp-rec', titulo: 'Recuperatorio TLP IV (adeudo 1er parcial)', materia: 'tlp4', fecha: '2026-11-24', fechaFin: '2026-11-25', tipo: 'recuperatorio' },
+  { id: 'ev-cierre-cuatri', titulo: 'Cierre del cuatrimestre', materia: null, fecha: '2026-11-20', tipo: 'institucional' },
   { id: 'ev-defensa', titulo: 'Defensa pública — ¡Recibida!', materia: null, fecha: '2026-12-01', fechaFin: '2026-12-04', tipo: 'defensa' },
 ]

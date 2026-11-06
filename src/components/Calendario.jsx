@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { GRADUACION, HORARIO, TIPOS_EVENTO, materiaById } from '../data/materias'
 import { useStore } from '../lib/store'
 import { MESES_LARGO, fmtFecha, inRange, toISO, todayISO } from '../lib/dates'
@@ -12,6 +12,24 @@ export default function Calendario({ abrirTarea, abrirEvento }) {
   const hoy = new Date()
   const [mes, setMes] = useState({ y: hoy.getFullYear(), m: hoy.getMonth() })
   const [sel, setSel] = useState(todayISO())
+  // Selección de rango arrastrando (como Google Calendar)
+  const [rango, setRango] = useState(null)
+  const arrastre = useRef(null)
+  useEffect(() => {
+    const up = () => {
+      const r = arrastre.current
+      arrastre.current = null
+      if (!r) return
+      setRango(null)
+      if (r.a !== r.b) {
+        const [a, b] = [r.a, r.b].sort()
+        abrirEvento(null, { fecha: a, fechaFin: b, tipo: 'periodo' })
+      }
+    }
+    window.addEventListener('pointerup', up)
+    return () => window.removeEventListener('pointerup', up)
+  }, [abrirEvento])
+  const enRango = (iso) => rango && iso >= (rango.a < rango.b ? rango.a : rango.b) && iso <= (rango.a < rango.b ? rango.b : rango.a)
 
   const primero = new Date(mes.y, mes.m, 1)
   const offset = (primero.getDay() + 6) % 7 // lunes primero
@@ -22,7 +40,10 @@ export default function Calendario({ abrirTarea, abrirEvento }) {
   while (celdas.length % 7) celdas.push(null)
 
   const itemsDe = (iso) => [
-    ...state.eventos.filter((e) => inRange(iso, e.fecha, e.fechaFin)).map((e) => ({ ...e, clase: 'evento' })),
+    ...state.eventos
+      .filter((e) => inRange(iso, e.fecha, e.fechaFin))
+      .sort((a, b) => (b.fechaFin ? 1 : 0) - (a.fechaFin ? 1 : 0) || a.fecha.localeCompare(b.fecha) || a.id.localeCompare(b.id))
+      .map((e) => ({ ...e, clase: 'evento' })),
     ...state.tareas.filter((t) => t.fecha === iso).map((t) => ({ ...t, clase: 'tarea' })),
   ]
   const mover = (n) => setMes(({ y, m }) => { const d = new Date(y, m + n, 1); return { y: d.getFullYear(), m: d.getMonth() } })
@@ -37,7 +58,7 @@ export default function Calendario({ abrirTarea, abrirEvento }) {
       <div className="page-head">
         <h1>Calendario</h1>
         <div className="row-gap">
-          <button className="btn btn-ghost" onClick={() => abrirEvento(null, { fecha: sel })}><Icon name="cal" size={16} /> Fecha</button>
+          <button className="btn btn-ghost" onClick={() => abrirEvento(null, { fecha: sel })}><Icon name="cal" size={16} /> Evento</button>
           <button className="btn btn-primary" onClick={() => abrirTarea(null, { fecha: sel })}><Icon name="plus" size={16} /> Tarea</button>
         </div>
       </div>
@@ -49,6 +70,7 @@ export default function Calendario({ abrirTarea, abrirEvento }) {
             <h3>{MESES_LARGO[mes.m]} {mes.y}</h3>
             <button className="icon-btn" onClick={() => mover(1)} aria-label="Mes siguiente"><Icon name="right" /></button>
           </div>
+          <p className="muted small cal-tip">Tip: en la compu, arrastrá sobre varios días para crear un período (ej. "Semana de recuperación").</p>
           <div className="cal-grid">
             {SEM.map((d) => <div key={d} className="cal-dow">{d}</div>)}
             {celdas.map((iso, i) => {
@@ -56,17 +78,44 @@ export default function Calendario({ abrirTarea, abrirEvento }) {
               const its = itemsDe(iso)
               const grad = inRange(iso, GRADUACION.inicio, GRADUACION.fin)
               return (
-                <button key={iso} className={`cal-cell ${iso === todayISO() ? 'today' : ''} ${iso === sel ? 'sel' : ''} ${grad ? 'grad' : ''} ${iso < todayISO() ? 'past' : ''}`} onClick={() => setSel(iso)}>
+                <button
+                  key={iso}
+                  className={`cal-cell ${iso === todayISO() ? 'today' : ''} ${iso === sel ? 'sel' : ''} ${grad ? 'grad' : ''} ${iso < todayISO() ? 'past' : ''} ${enRango(iso) ? 'rango' : ''}`}
+                  onClick={() => setSel(iso)}
+                  onPointerDown={(e) => {
+                    if (e.pointerType !== 'mouse' || e.button !== 0) return
+                    arrastre.current = { a: iso, b: iso }
+                  }}
+                  onPointerEnter={() => {
+                    if (!arrastre.current) return
+                    arrastre.current = { ...arrastre.current, b: iso }
+                    setRango({ ...arrastre.current })
+                  }}
+                >
                   <span className="cal-num">{Number(iso.slice(8))}</span>
                   <div className="cal-items">
                     {its.slice(0, 3).map((it) => {
-                      const c = materiaById(it.materia)?.color || 'var(--accent)'
+                      const c = materiaById(it.materia)?.color || 'var(--cyan)'
                       const done = it.estado === 'completada' || it.hecho
-                      return <span key={it.id} className={`cal-chip ${it.clase} ${done ? 'done' : ''}`} style={{ '--c': c }}>{it.titulo}</span>
+                      const multi = it.clase === 'evento' && it.fechaFin && it.fechaFin !== it.fecha
+                      const lunes = new Date(iso + 'T12:00').getDay() === 1
+                      const ini = iso === it.fecha
+                      const fin = iso === it.fechaFin
+                      const conTitulo = !multi || ini || lunes
+                      return (
+                        <span
+                          key={it.id}
+                          className={`cal-chip ${it.clase} ${done ? 'done' : ''} ${multi ? 'span' : ''} ${multi && ini ? 'ini' : ''} ${multi && fin ? 'fin' : ''} ${!it.materia ? 'general' : ''}`}
+                          style={{ '--c': c }}
+                          title={it.titulo}
+                        >
+                          {conTitulo ? it.titulo : '\u00a0'}
+                        </span>
+                      )
                     })}
                     {its.length > 3 && <span className="cal-more">+{its.length - 3}</span>}
                   </div>
-                  <span className="cal-dots">{its.slice(0, 4).map((it) => <i key={it.id} style={{ background: materiaById(it.materia)?.color || 'var(--accent)' }} />)}</span>
+                  <span className="cal-dots">{its.slice(0, 4).map((it) => <i key={it.id} style={{ background: materiaById(it.materia)?.color || 'var(--cyan)' }} />)}</span>
                 </button>
               )
             })}
@@ -83,7 +132,7 @@ export default function Calendario({ abrirTarea, abrirEvento }) {
                   <Icon name="alert" size={16} />
                   <div>
                     <div className="li-title">{e.titulo}{e.tentativo && <em> (a confirmar)</em>}</div>
-                    <div className="li-meta"><MateriaTag id={e.materia} /> <span className="muted small">{TIPOS_EVENTO[e.tipo]}</span></div>
+                    <div className="li-meta"><MateriaTag id={e.materia} /> <span className="muted small">{TIPOS_EVENTO[e.tipo]}</span>{e.fechaFin && e.fechaFin !== e.fecha && <span className="muted small">{fmtFecha(e.fecha)} → {fmtFecha(e.fechaFin)}</span>}</div>
                     {e.nota && <p className="muted small">{e.nota}</p>}
                   </div>
                 </li>

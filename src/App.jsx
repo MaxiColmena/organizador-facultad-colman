@@ -49,7 +49,7 @@ export default function App() {
   }, [state])
 
   const abrirTarea = (t, init = {}) => setModal({ tipo: 'tarea', item: t || null, init })
-  const abrirEvento = (e, init = {}) => setModal({ tipo: 'evento', item: e || null, init })
+  const abrirEvento = useCallback((e, init = {}) => setModal({ tipo: 'evento', item: e || null, init }), [])
   const cerrar = useCallback(() => setModal(null), [])
   const nAlertas = alertas(state).length
   const props = { ir, abrirTarea, abrirEvento }
@@ -109,7 +109,7 @@ export default function App() {
       {vista !== 'ajustes' && <button className="fab" onClick={() => abrirTarea()} aria-label="Nueva tarea"><Icon name="plus" size={24} /></button>}
 
       {modal?.tipo === 'tarea' && <TareaForm tarea={modal.item} materiaInicial={modal.init.materia} fechaInicial={modal.init.fecha} onClose={cerrar} />}
-      {modal?.tipo === 'evento' && <EventoForm evento={modal.item} materiaInicial={modal.init.materia} fechaInicial={modal.init.fecha} onClose={cerrar} />}
+      {modal?.tipo === 'evento' && <EventoForm evento={modal.item} materiaInicial={modal.init.materia} fechaInicial={modal.init.fecha} fechaFinInicial={modal.init.fechaFin} tipoInicial={modal.init.tipo} onClose={cerrar} />}
     </div>
   )
 }
