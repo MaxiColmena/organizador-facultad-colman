@@ -20,7 +20,10 @@ export function vencimientos(state) {
 // Urgentes: vencidas (sólo tareas) o dentro de los próximos N días.
 export function alertas(state) {
   const n = state.ajustes?.diasAviso ?? 3
-  return vencimientos(state).filter((v) => daysUntil(v.fecha) <= n)
+  const peso = { critica: 0, alta: 1 }
+  return vencimientos(state)
+    .filter((v) => daysUntil(v.fecha) <= n)
+    .sort((a, b) => (peso[a.importancia] ?? 2) - (peso[b.importancia] ?? 2) || a.fecha.localeCompare(b.fecha))
 }
 
 export function nivel(fecha, fechaFin) {

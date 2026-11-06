@@ -55,7 +55,7 @@ export default function Inicio({ ir, abrirTarea, abrirEvento }) {
           {urg.length === 0 ? <Vacio>Nada urgente. 🎯</Vacio> : (
             <ul className="lista">
               {urg.map((v) => (
-                <li key={v.id} className={`alerta alerta-${nivel(v.fecha, v.fechaFin)}`} onClick={() => abrir(v)}>
+                <li key={v.id} className={`alerta alerta-${nivel(v.fecha, v.fechaFin)} ${v.importancia === 'critica' ? 'alerta-critica' : ''}`} onClick={() => abrir(v)}>
                   <Icon name="alert" size={16} />
                   <div>
                     <div className="li-title">{v.clase === 'evento' ? iconoEvento(v) : ''}{v.titulo}{v.tentativo && <em> (a confirmar)</em>}</div>

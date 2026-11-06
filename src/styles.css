@@ -360,3 +360,6 @@ legend { font-size: .82rem; color: var(--muted); padding: 0 6px; }
 .ev-color > svg { color: var(--c); margin-top: 3px; flex-shrink: 0; }
 .nota { margin: 4px 0 0; white-space: pre-wrap; }
 @media (max-width: 760px) { .importancia { grid-template-columns: repeat(2, 1fr); } }
+
+.alerta-critica { border-left-color: var(--danger); background: linear-gradient(90deg, rgba(239, 68, 68, .14), var(--surface-2) 70%); box-shadow: inset 0 0 0 1px rgba(239, 68, 68, .25); }
+.alerta-critica > svg { color: var(--danger); }
