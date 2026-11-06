@@ -21,8 +21,8 @@ npm run dev
 - **Con Supabase (gratis):** login con email y sincronización PC ↔ celular, adjuntos en Storage privado.
   1. Crear proyecto en supabase.com → SQL Editor → ejecutar `supabase/schema.sql`.
   2. Copiar `Project URL` y `anon key` (Settings → API).
-  3. GitHub → repo → Settings → Secrets and variables → Actions → crear `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`.
-  4. En Render, cargar las mismas variables. Local: copiar `.env.example` a `.env`.
+  3. Pegarlos en `.env.production` (ya configurado; son claves públicas, la seguridad la dan las políticas RLS).
+  4. Crear el usuario en Authentication → Users → Add user (con "Auto Confirm User").
   5. (Opcional) Supabase → Authentication → desactivar "Confirm email" para no tener que confirmar.
 
 ## Deploy
