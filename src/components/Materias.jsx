@@ -37,7 +37,12 @@ export function useAprobar() {
       if (nivel === 3) setTimeout(() => lluviaEmojis(['🎉', '⭐', '💜', '🚀', '🔥'], 3), 400)
     }
   }
-  const barra = (n) => '█'.repeat(n) + '░'.repeat(MATERIAS.length - n)
+  // Barra de 8 casilleros (con caracteres █░ se veía desalineada según la fuente del sistema)
+  const barra = (n) => (
+    <span className="npm-barra" aria-label={`${n} de 8`}>
+      {MATERIAS.map((_, i) => <i key={i} className={i < n ? 'on' : ''} />)}
+    </span>
+  )
   const f = festejo
   const cartel = f && (
     <Modal titulo={f.nivel === 1 ? '✅' : f.nivel === 2 ? '🎉' : '🔥'} onClose={() => setFestejo(null)}>
@@ -51,7 +56,7 @@ export function useAprobar() {
         </p>
         <pre className="festejo-npm">
           <span className="muted">$</span> npm install tecnico-superior{'\n'}
-          [{barra(f.aprobadas)}] {f.aprobadas}/8{'\n'}
+          {barra(f.aprobadas)} {f.aprobadas}/8{'\n'}
           <span className="ok">{f.frase}</span>
         </pre>
         {CANCION[f.faltan] && (
