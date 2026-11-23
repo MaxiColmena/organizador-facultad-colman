@@ -5,6 +5,7 @@ import { alertas, vencimientos, nivel } from '../lib/alertas'
 import { daysUntil } from '../lib/dates'
 import { Fecha, Icon, MateriaTag, Progreso, Vacio } from './ui'
 import { iconoEvento } from './EventoForm'
+import { confetiDesde, sonidoPop, vibrar } from '../lib/fiesta'
 
 export default function Inicio({ ir, abrirTarea, abrirEvento }) {
   const { state, toggleTarea, toggleEvento } = useStore()
@@ -81,7 +82,7 @@ export default function Inicio({ ir, abrirTarea, abrirEvento }) {
                   </div>
                   <button
                     className={`btn btn-sm alerta-btn ${v.clase === 'tarea' ? 'btn-ok' : 'btn-ghost'}`}
-                    onClick={(e) => (e.stopPropagation(), despachar(v))}
+                    onClick={(e) => (e.stopPropagation(), confetiDesde(e.currentTarget, v.clase === 'tarea' ? 45 : 20), sonidoPop(), vibrar(40), despachar(v))}
                     title={v.clase === 'tarea' ? 'Marcar tarea como completada' : 'Ya lo vi, no mostrar más'}
                   >
                     <Icon name="check" size={14} /> {v.clase === 'tarea' ? 'Hecha' : 'Visto'}

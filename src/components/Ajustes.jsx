@@ -68,6 +68,16 @@ export default function Ajustes() {
       </section>
 
       <section className="card">
+        <h3>🎉 Festejos</h3>
+        <label className="check-row">
+          <input type="checkbox" checked={state.ajustes?.sonidos !== false} onChange={(e) => guardarAjustes({ sonidos: e.target.checked })} />
+          Sonidos al completar tareas y aprobar materias
+        </label>
+        <button className="btn btn-ghost" onClick={() => window.dispatchEvent(new Event('fiesta-total'))}>🎆 Ver la fiesta final (spoiler)</button>
+        <p className="muted small">Hay sorpresas escondidas en la app… 🥚</p>
+      </section>
+
+      <section className="card">
         <h3>Sincronizar PC ↔ celular</h3>
         {!supabase ? (
           <p className="muted small">Modo local: tus datos viven en este navegador. Para sincronizar entre dispositivos hay que configurar Supabase (ver README). Mientras tanto podés usar exportar/importar.</p>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useStore } from './lib/store'
 import { alertas, notificar } from './lib/alertas'
 import { Icon } from './components/ui'
@@ -10,6 +10,11 @@ import Horario from './components/Horario'
 import Ajustes from './components/Ajustes'
 import TareaForm from './components/TareaForm'
 import EventoForm from './components/EventoForm'
+import Fiesta from './components/Fiesta'
+import { MATERIAS } from './data/materias'
+import { bailar, lanzarConfeti, lluviaEmojis, setSonidos, sonidoFanfarria, vibrar } from './lib/fiesta'
+
+const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a']
 
 const NAV = [
   ['inicio', 'Inicio', 'home'],
@@ -29,6 +34,52 @@ export default function App() {
   const { state, sync } = useStore()
   const [{ vista, sub }, setRuta] = useState(vistaDeHash)
   const [modal, setModal] = useState(null)
+  const [fiesta, setFiesta] = useState(false)
+  const [huevo, setHuevo] = useState('')
+  const todasAprobadas = MATERIAS.every((m) => state.materiasMeta[m.id]?.estado === 'aprobada')
+
+  useEffect(() => setSonidos(state.ajustes?.sonidos), [state.ajustes?.sonidos])
+
+  // Fiesta total (8/8) — la dispara el botón Aprobada o el botón de volver a festejar
+  useEffect(() => {
+    const on = () => setFiesta(true)
+    window.addEventListener('fiesta-total', on)
+    return () => window.removeEventListener('fiesta-total', on)
+  }, [])
+
+  // Huevos de pascua: tocar el logo 7 veces o el código Konami (↑↑↓↓←→←→BA)
+  const miniFiesta = useCallback((msg) => {
+    lanzarConfeti()
+    lluviaEmojis(['🥚', '🐣', '✨', '🎉'], 3)
+    sonidoFanfarria()
+    bailar()
+    vibrar([60, 30, 60])
+    setHuevo(msg)
+    setTimeout(() => setHuevo(''), 4000)
+  }, [])
+  const logo = useRef({ n: 0, t: null })
+  const toques = useCallback(() => {
+    const r = logo.current
+    r.n += 1
+    clearTimeout(r.t)
+    r.t = setTimeout(() => (r.n = 0), 1500)
+    if (r.n >= 7) {
+      r.n = 0
+      miniFiesta('🥚 ¡Encontraste un huevo de pascua! Seguí así, Máximo.')
+    }
+  }, [miniFiesta])
+  useEffect(() => {
+    let pos = 0
+    const k = (e) => {
+      pos = e.key === KONAMI[pos] || e.key.toLowerCase() === KONAMI[pos] ? pos + 1 : e.key === KONAMI[0] ? 1 : 0
+      if (pos === KONAMI.length) {
+        pos = 0
+        miniFiesta('🕹️ Código Konami activado: +30 vidas para la defensa.')
+      }
+    }
+    document.addEventListener('keydown', k)
+    return () => document.removeEventListener('keydown', k)
+  }, [miniFiesta])
 
   useEffect(() => {
     const on = () => setRuta(vistaDeHash())
@@ -55,10 +106,10 @@ export default function App() {
   const props = { ir, abrirTarea, abrirEvento }
 
   return (
-    <div className="app">
+    <div className={`app ${todasAprobadas ? 'arcoiris' : ''}`}>
       <aside className="sidebar">
         <div className="brand" onClick={() => ir('inicio')}>
-          <span className="logo">TS</span>
+          <span className="logo" onClick={toques}>TS</span>
           <div>
             <strong>Organizador</strong>
             <small>DSM · 2º año</small>
@@ -79,7 +130,7 @@ export default function App() {
 
       <header className="topbar">
         <div className="brand" onClick={() => ir('inicio')}>
-          <span className="logo">TS</span>
+          <span className="logo" onClick={toques}>TS</span>
           <strong>Organizador</strong>
         </div>
         <button className={`top-sync sync-${sync}`} onClick={() => ir('ajustes')} aria-label="Ajustes y sincronización">
@@ -107,6 +158,12 @@ export default function App() {
       </nav>
 
       {vista !== 'ajustes' && <button className="fab" onClick={() => abrirTarea()} aria-label="Nueva tarea"><Icon name="plus" size={24} /></button>}
+
+      {todasAprobadas && !fiesta && (
+        <button className="btn-fiesta" onClick={() => setFiesta(true)} aria-label="Volver a festejar" title="Volver a festejar">🎉</button>
+      )}
+      {fiesta && <Fiesta onClose={() => setFiesta(false)} />}
+      {huevo && <div className="toast huevo" role="status">{huevo}</div>}
 
       {modal?.tipo === 'tarea' && <TareaForm tarea={modal.item} materiaInicial={modal.init.materia} fechaInicial={modal.init.fecha} onClose={cerrar} />}
       {modal?.tipo === 'evento' && <EventoForm evento={modal.item} materiaInicial={modal.init.materia} fechaInicial={modal.init.fecha} fechaFinInicial={modal.init.fechaFin} tipoInicial={modal.init.tipo} onClose={cerrar} />}

@@ -88,3 +88,16 @@ export function Progreso({ valor, total, color }) {
 export function Vacio({ children }) {
   return <p className="vacio">{children}</p>
 }
+
+// Texto con letras que bailan. `una` = salta una sola vez (ej. al completar una tarea).
+export function Bailarin({ texto, una = false, arcoiris = false, className = '' }) {
+  return (
+    <span className={`bailarin ${una ? 'una' : ''} ${arcoiris ? 'arcoiris-txt' : ''} ${className}`} aria-label={texto}>
+      {[...texto].map((ch, i) => (
+        <span key={i} aria-hidden="true" style={{ '--i': i }}>
+          {ch === ' ' ? ' ' : ch}
+        </span>
+      ))}
+    </span>
+  )
+}

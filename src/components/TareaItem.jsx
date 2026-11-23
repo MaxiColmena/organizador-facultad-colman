@@ -1,17 +1,35 @@
+import { useState } from 'react'
 import { useStore } from '../lib/store'
+import { confetiDesde, sonidoPop, vibrar } from '../lib/fiesta'
 import { abrirArchivo } from '../lib/files'
-import { Fecha, Icon, MateriaTag } from './ui'
+import { Bailarin, Fecha, Icon, MateriaTag } from './ui'
 
 export default function TareaItem({ t, onEdit, mostrarMateria = true }) {
   const { toggleTarea, borrarTarea, user } = useStore()
-  const done = t.estado === 'completada'
+  const [salto, setSalto] = useState(false)
+  const done = t.estado === 'completada' || salto
+  // Al completar: primero festeja (confeti, sonido, letras saltando) y después la marca,
+  // así no desaparece de "Pendientes" antes de ver la animación.
+  const marcar = (e) => {
+    if (salto) return
+    if (t.estado !== 'completada') {
+      confetiDesde(e.currentTarget, 45)
+      sonidoPop()
+      vibrar(40)
+      setSalto(true)
+      setTimeout(() => {
+        toggleTarea(t.id)
+        setSalto(false)
+      }, 1100)
+    } else toggleTarea(t.id)
+  }
   return (
     <li className={`tarea ${done ? 'done' : ''}`}>
-      <button className={`checkbox ${done ? 'on' : ''}`} onClick={() => toggleTarea(t.id)} aria-label={done ? 'Marcar pendiente' : 'Marcar completada'}>
+      <button className={`checkbox ${done ? 'on' : ''}`} onClick={marcar} aria-label={done ? 'Marcar pendiente' : 'Marcar completada'}>
         {done && <Icon name="check" size={14} />}
       </button>
       <div className="tarea-main" onClick={() => onEdit(t)}>
-        <div className="tarea-title">{t.titulo}</div>
+        <div className="tarea-title">{salto ? <Bailarin texto={t.titulo} una /> : t.titulo}</div>
         <div className="tarea-meta">
           {mostrarMateria && <MateriaTag id={t.materia} />}
           {t.fecha ? (done ? <span className="fecha">{t.fecha.split('-').reverse().join('/')}</span> : <Fecha fecha={t.fecha} />) : <span className="fecha">sin fecha</span>}

@@ -373,3 +373,64 @@ legend { font-size: .82rem; color: var(--muted); padding: 0 6px; }
 .toast span { min-width: 0; }
 .toast .link { flex-shrink: 0; }
 @media (max-width: 760px) { .toast { bottom: calc(150px + env(safe-area-inset-bottom)); } }
+
+/* ===== Festejos ===== */
+.bailarin { display: inline; }
+.bailarin > span { display: inline-block; animation: ola 1.3s ease-in-out infinite; animation-delay: calc(var(--i) * 70ms); }
+.bailarin.una > span { animation: salto .7s cubic-bezier(.3, 1.6, .5, 1) 1 both; animation-delay: calc(var(--i) * 35ms); color: var(--ok); }
+@keyframes ola { 0%, 100% { transform: translateY(0) rotate(0); } 25% { transform: translateY(-9px) rotate(-7deg); } 50% { transform: translateY(0) scale(1.08); } 75% { transform: translateY(-3px) rotate(7deg); } }
+@keyframes salto { 0% { transform: translateY(0); } 40% { transform: translateY(-12px) rotate(-8deg) scale(1.2); } 100% { transform: none; } }
+.arcoiris-txt > span { color: hsl(calc(var(--i) * 32 + 260), 95%, 68%); text-shadow: 0 0 18px hsl(calc(var(--i) * 32 + 260), 95%, 50% / .45); }
+
+body.bailando main > .page { animation: bailarPag .32s ease-in-out 5; transform-origin: 50% 0; }
+body.bailando .sidebar nav button, body.bailando .bottom-nav button { animation: brinco .45s ease-in-out 3; }
+body.bailando .sidebar nav button:nth-child(2n), body.bailando .bottom-nav button:nth-child(2n) { animation-delay: .12s; }
+body.bailando .logo { animation: girar .8s ease-in-out 2; }
+@keyframes bailarPag { 0%, 100% { transform: none; } 25% { transform: rotate(-.8deg) translateY(-3px); } 75% { transform: rotate(.8deg) translateY(-3px); } }
+@keyframes brinco { 0%, 100% { transform: none; } 50% { transform: translateY(-6px) scale(1.06); } }
+@keyframes girar { to { transform: rotate(360deg); } }
+
+.festejo-titulo { font-size: clamp(1.8rem, 6vw, 2.6rem); font-weight: 900; letter-spacing: .02em; margin: 0; }
+.festejo-npm { margin: 0; text-align: left; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .8rem; line-height: 1.6; background: #05060a; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; white-space: pre-wrap; overflow-x: auto; }
+
+/* Modo arcoíris permanente (8/8 aprobadas) */
+.app.arcoiris { --grad: linear-gradient(90deg, #f43f5e, #f59e0b, #facc15, #22c55e, #38bdf8, #8b5cf6, #ec4899); }
+.app.arcoiris .logo, .app.arcoiris .btn-primary, .app.arcoiris .fab, .app.arcoiris .progress > div { background-size: 300% 100%; animation: arco 4s linear infinite; }
+.app.arcoiris .progress > div { background: var(--grad) !important; background-size: 300% 100% !important; }
+.app.arcoiris .hero { border-color: rgba(250, 204, 21, .45); }
+@keyframes arco { to { background-position: 300% 0; } }
+.btn-fiesta { position: fixed; right: 20px; bottom: 20px; z-index: 30; width: 56px; height: 56px; border-radius: 50%; font-size: 1.6rem; background: var(--grad); background-size: 300% 100%; animation: arco 3s linear infinite, latido 1.6s ease-in-out infinite; box-shadow: 0 10px 30px rgba(139, 92, 246, .5); }
+@keyframes latido { 50% { transform: scale(1.12) rotate(-8deg); } }
+@media (max-width: 760px) { .btn-fiesta { bottom: calc(140px + env(safe-area-inset-bottom)); right: 16px; } }
+
+/* Fiesta total */
+body.fiesta main, body.fiesta .sidebar, body.fiesta .topbar { animation: hue 3s linear infinite; }
+@keyframes hue { to { filter: hue-rotate(360deg) saturate(1.6); } }
+.fiesta-bg { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 16px; overflow: auto; background: linear-gradient(120deg, rgba(244, 63, 94, .35), rgba(250, 204, 21, .25), rgba(34, 197, 94, .25), rgba(56, 189, 248, .3), rgba(139, 92, 246, .4)); background-size: 400% 400%; animation: fondoFiesta 6s ease infinite; backdrop-filter: blur(6px); }
+@keyframes fondoFiesta { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+.fiesta-card { width: min(620px, 100%); border-radius: 24px; padding: 28px 22px; text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; box-shadow: 0 30px 90px rgba(0, 0, 0, .6); border: 3px solid transparent; background: linear-gradient(rgba(8, 9, 15, .94), rgba(8, 9, 15, .94)) padding-box, linear-gradient(90deg, #f43f5e, #f59e0b, #facc15, #22c55e, #38bdf8, #8b5cf6, #ec4899, #f43f5e) border-box; background-size: 100% 100%, 300% 100%; animation: in .4s, arcoBorde 3s linear infinite; }
+.fiesta-titulo { animation: flotar 3s ease-in-out infinite; }
+@keyframes arcoBorde { to { background-position: 0 0, 300% 0; } }
+@keyframes flotar { 50% { transform: translateY(-6px); } }
+.fiesta-eyebrow { margin: 0; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; font-size: .8rem; color: var(--ok); }
+.fiesta-titulo { font-size: clamp(2.2rem, 9vw, 4rem); font-weight: 900; line-height: 1.05; margin: 0; }
+.fiesta-sub { margin: 0; color: var(--muted); }
+.fiesta-defensa { margin: 0; font-size: 1.05rem; }
+.fiesta-video { width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: #000; border: 1px solid var(--border); }
+.fiesta-video iframe { width: 100%; height: 100%; border: 0; }
+.fiesta-acciones { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.flotantes { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.flotantes span { position: absolute; left: var(--x); bottom: -60px; font-size: 2rem; animation: subir var(--d) linear infinite; animation-delay: var(--del); }
+@keyframes subir { 0% { transform: translateY(0) rotate(0); opacity: 0; } 10% { opacity: 1; } 100% { transform: translateY(-120vh) rotate(360deg); opacity: .2; } }
+.toast.huevo { z-index: 95; border-color: var(--accent); }
+.check-row { display: flex; align-items: center; gap: 10px; font-size: .9rem; cursor: pointer; }
+.check-row input { width: auto; accent-color: var(--accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .bailarin > span, .flotantes span, .fiesta-card, body.fiesta main, body.fiesta .sidebar, body.fiesta .topbar { animation: none !important; }
+}
+
+.festejo-n1 .festejo-titulo { font-size: 1.6rem; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.festejo-n2 .festejo-titulo { color: var(--cyan-2); }
+.festejo-video { width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #000; border: 1px solid var(--border); }
+.festejo-video iframe { width: 100%; height: 100%; border: 0; }

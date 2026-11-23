@@ -1,49 +1,72 @@
 import { useState } from 'react'
-import confetti from 'canvas-confetti'
 import { DIAS, HORARIO, MATERIAS, TIPOS_EVENTO, materiaById } from '../data/materias'
 import { useStore } from '../lib/store'
 import { todayISO } from '../lib/dates'
-import { Fecha, Icon, Modal, Progreso, Vacio } from './ui'
+import { Bailarin, Fecha, Icon, Modal, Progreso, Vacio } from './ui'
+import { bailar, confetiSuave, frase, lanzarConfeti, lluviaEmojis, sonidoCampanita, sonidoFanfarria, vibrar } from '../lib/fiesta'
 import TareaItem from './TareaItem'
 import Documentacion from './Documentacion'
 import { iconoEvento } from './EventoForm'
 
 const ESTADOS = { cursando: 'Cursando', regular: 'En riesgo' }
 
-export function lanzarConfeti() {
-  const colores = ['#8b5cf6', '#38bdf8', '#22c55e', '#a78bfa', '#f0abfc']
-  const fin = Date.now() + 1200
-  confetti({ particleCount: 140, spread: 90, origin: { y: 0.65 }, colors: colores })
-  ;(function frame() {
-    confetti({ particleCount: 4, angle: 60, spread: 60, origin: { x: 0 }, colors: colores })
-    confetti({ particleCount: 4, angle: 120, spread: 60, origin: { x: 1 }, colors: colores })
-    if (Date.now() < fin) requestAnimationFrame(frame)
-  })()
-}
+// Canciones según cuántas materias falten (la de 0 está en la fiesta total)
+const CANCION = { 2: 'EjySxo57o8I', 1: 'ADGFuE7T8Qc' }
 
-// Botón "Aprobada" + cartel de felicitaciones. Se usa en la lista y en el detalle.
+// Botón "Aprobada" + cartel de felicitaciones. La intensidad crece a medida que faltan menos:
+// 7-3 suave · 2 medio + música · 1 fuerte + música · 0 fiesta total (Fiesta.jsx).
 export function useAprobar() {
   const { state, aprobarMateria } = useStore()
   const [festejo, setFestejo] = useState(null)
   const aprobar = (id) => {
     aprobarMateria(id, true)
     const aprobadas = MATERIAS.filter((m) => m.id === id || state.materiasMeta[m.id]?.estado === 'aprobada').length
-    setFestejo({ materia: materiaById(id), faltan: MATERIAS.length - aprobadas })
-    lanzarConfeti()
+    const faltan = MATERIAS.length - aprobadas
+    if (faltan === 0) return window.dispatchEvent(new Event('fiesta-total'))
+    const nivel = faltan >= 3 ? 1 : faltan === 2 ? 2 : 3
+    setFestejo({ materia: materiaById(id), faltan, aprobadas, frase: frase(), nivel })
+    if (nivel === 1) {
+      confetiSuave()
+      sonidoCampanita()
+      vibrar(50)
+    } else {
+      lanzarConfeti()
+      sonidoFanfarria()
+      bailar(nivel === 3 ? 2400 : 1400)
+      vibrar(nivel === 3 ? [100, 50, 100, 50, 250] : [80, 40, 120])
+      if (nivel === 3) setTimeout(() => lluviaEmojis(['🎉', '⭐', '💜', '🚀', '🔥'], 3), 400)
+    }
   }
-  const cartel = festejo && (
-    <Modal titulo="🎉 ¡Felicidades!" onClose={() => setFestejo(null)}>
-      <div className="festejo">
-        <p className="festejo-materia">Aprobaste <strong>{festejo.materia.nombre}</strong></p>
-        {festejo.faltan > 0 ? (
-          <p className="festejo-num">
-            Solo te {festejo.faltan === 1 ? 'falta' : 'faltan'} <strong>{festejo.faltan}</strong> {festejo.faltan === 1 ? 'materia' : 'materias'} para recibirte
-          </p>
-        ) : (
-          <p className="festejo-num">¡Aprobaste las 8! Solo queda la <strong>defensa pública</strong> 🎓</p>
+  const barra = (n) => '█'.repeat(n) + '░'.repeat(MATERIAS.length - n)
+  const f = festejo
+  const cartel = f && (
+    <Modal titulo={f.nivel === 1 ? '✅' : f.nivel === 2 ? '🎉' : '🔥'} onClose={() => setFestejo(null)}>
+      <div className={`festejo festejo-n${f.nivel}`}>
+        <h2 className="festejo-titulo">
+          {f.nivel === 1 ? '¡Aprobada!' : f.nivel === 2 ? <Bailarin texto="¡FELICIDADES!" /> : <Bailarin texto="¡ÚLTIMA RECTA!" arcoiris />}
+        </h2>
+        <p className="festejo-materia">Aprobaste <strong>{f.materia.nombre}</strong></p>
+        <p className="festejo-num">
+          {f.faltan === 1 ? <>¡Te falta <strong>1</strong> sola materia para recibirte!</> : <>Te faltan <strong>{f.faltan}</strong> materias para recibirte</>}
+        </p>
+        <pre className="festejo-npm">
+          <span className="muted">$</span> npm install tecnico-superior{'\n'}
+          [{barra(f.aprobadas)}] {f.aprobadas}/8{'\n'}
+          <span className="ok">{f.frase}</span>
+        </pre>
+        {CANCION[f.faltan] && (
+          <>
+            <div className="festejo-video">
+              <iframe
+                src={`https://www.youtube-nocookie.com/embed/${CANCION[f.faltan]}?autoplay=1&rel=0&playsinline=1`}
+                title="Canción del festejo"
+                allow="autoplay; encrypted-media"
+              />
+            </div>
+            <a className="link small" href={`https://youtu.be/${CANCION[f.faltan]}`} target="_blank" rel="noreferrer">¿No suena? Abrir en YouTube ↗</a>
+          </>
         )}
-        <Progreso valor={MATERIAS.length - festejo.faltan} total={MATERIAS.length} color="var(--ok)" />
-        <button className="btn btn-primary" onClick={() => setFestejo(null)}>¡Vamos!</button>
+        <button className="btn btn-primary" onClick={() => setFestejo(null)}>{f.nivel === 1 ? 'Seguir' : '¡Vamos! 💪'}</button>
       </div>
     </Modal>
   )
