@@ -41,12 +41,30 @@ function unirLista(a = [], b = [], borrados) {
   }
   return [...map.values()].filter((it) => !(borrados[it.id] >= (it.upd || 0)))
 }
+// Une la ficha de una materia campo por campo (estado, asistencia, notas…), así un cambio
+// en un dispositivo no pisa otro campo cambiado en el otro. Los documentos se suman por id.
+const tiempo = (m, campo) => m._u?.[campo] ?? m.upd ?? 0
+function unirMeta(a, b, borrados) {
+  const out = { _u: {} }
+  const campos = new Set([...Object.keys(a), ...Object.keys(b)].filter((c) => c !== '_u' && c !== 'upd'))
+  for (const c of campos) {
+    const ta = c in a ? tiempo(a, c) : -1
+    const tb = c in b ? tiempo(b, c) : -1
+    const gana = tb > ta ? b : a
+    out[c] = gana[c]
+    out._u[c] = Math.max(ta, tb, 0)
+  }
+  if (a.docs || b.docs) out.docs = unirLista(a.docs, b.docs, borrados)
+  out.upd = Math.max(a.upd || 0, b.upd || 0)
+  return out
+}
+
 export function combinar(local, remoto) {
   const r = { ...estadoInicial(), ...remoto }
   const borrados = { ...r.borrados }
   for (const [k, v] of Object.entries(local.borrados || {})) borrados[k] = Math.max(v, borrados[k] || 0)
   const meta = { ...r.materiasMeta }
-  for (const [k, v] of Object.entries(local.materiasMeta || {})) if (!meta[k] || (v.upd || 0) >= (meta[k].upd || 0)) meta[k] = v
+  for (const [k, v] of Object.entries(local.materiasMeta || {})) meta[k] = meta[k] ? unirMeta(meta[k], v, borrados) : v
   return {
     ...r,
     updatedAt: Math.max(local.updatedAt || 0, r.updatedAt || 0),
@@ -152,6 +170,14 @@ export function StoreProvider({ children }) {
 
   const mutate = useCallback((fn) => setState((s) => ({ ...fn(s), updatedAt: Date.now() })), [])
   const now = () => Date.now()
+  // Actualiza campos de la ficha de una materia guardando cuándo cambió cada uno
+  const conMeta = (s, materia, patch) => {
+    const m = s.materiasMeta[materia] || {}
+    const t = now()
+    const u = { ...m._u }
+    for (const k of Object.keys(patch)) u[k] = t
+    return { ...s, materiasMeta: { ...s.materiasMeta, [materia]: { ...m, ...patch, _u: u, upd: t } } }
+  }
 
   const actions = useMemo(
     () => ({
@@ -180,24 +206,17 @@ export function StoreProvider({ children }) {
         }),
       toggleEvento: (id) => mutate((s) => ({ ...s, eventos: s.eventos.map((e) => (e.id === id ? { ...e, hecho: !e.hecho, upd: now() } : e)) })),
       borrarEvento: (id) => mutate((s) => ({ ...s, eventos: s.eventos.filter((e) => e.id !== id), borrados: { ...s.borrados, [id]: now() } })),
-      guardarMeta: (materia, patch) =>
-        mutate((s) => ({ ...s, materiasMeta: { ...s.materiasMeta, [materia]: { ...s.materiasMeta[materia], ...patch, upd: now() } } })),
+      guardarMeta: (materia, patch) => mutate((s) => conMeta(s, materia, patch)),
       aprobarMateria: (materia, aprobada) =>
-        mutate((s) => ({
-          ...s,
-          materiasMeta: { ...s.materiasMeta, [materia]: { ...s.materiasMeta[materia], estado: aprobada ? 'aprobada' : 'cursando', aprobadaEn: aprobada ? now() : null, upd: now() } },
-        })),
+        mutate((s) => conMeta(s, materia, { estado: aprobada ? 'aprobada' : 'cursando', aprobadaEn: aprobada ? now() : null })),
       agregarDocMateria: (materia, doc) =>
-        mutate((s) => {
-          const m = s.materiasMeta[materia] || {}
-          return { ...s, materiasMeta: { ...s.materiasMeta, [materia]: { ...m, docs: [...(m.docs || []), doc], upd: now() } } }
-        }),
+        mutate((s) => conMeta(s, materia, { docs: [...(s.materiasMeta[materia]?.docs || []), { ...doc, upd: now() }] })),
       quitarDocMateria: (materia, docId) =>
         mutate((s) => {
-          const m = s.materiasMeta[materia] || {}
-          const d = (m.docs || []).find((x) => x.id === docId)
+          const docs = s.materiasMeta[materia]?.docs || []
+          const d = docs.find((x) => x.id === docId)
           if (d && !d.url) borrarArchivo(d, user?.id)
-          return { ...s, materiasMeta: { ...s.materiasMeta, [materia]: { ...m, docs: (m.docs || []).filter((x) => x.id !== docId), upd: now() } } }
+          return { ...conMeta(s, materia, { docs: docs.filter((x) => x.id !== docId) }), borrados: { ...s.borrados, [docId]: now() } }
         }),
       guardarAjustes: (patch) => mutate((s) => ({ ...s, ajustes: { ...s.ajustes, ...patch, upd: now() } })),
       importar: (data) => mutate(() => ({ ...estadoInicial(), ...data })),
