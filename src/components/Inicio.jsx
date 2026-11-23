@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { DIAS, GRADUACION, HORARIO, MATERIAS, materiaById } from '../data/materias'
 import { useStore } from '../lib/store'
 import { alertas, vencimientos, nivel } from '../lib/alertas'
@@ -6,7 +7,24 @@ import { Fecha, Icon, MateriaTag, Progreso, Vacio } from './ui'
 import { iconoEvento } from './EventoForm'
 
 export default function Inicio({ ir, abrirTarea, abrirEvento }) {
-  const { state } = useStore()
+  const { state, toggleTarea, toggleEvento } = useStore()
+  const [deshacer, setDeshacer] = useState(null) // { v, texto }
+  useEffect(() => {
+    if (!deshacer) return
+    const t = setTimeout(() => setDeshacer(null), 6000)
+    return () => clearTimeout(t)
+  }, [deshacer])
+  const despachar = (v) => {
+    if (v.clase === 'tarea') toggleTarea(v.id)
+    else toggleEvento(v.id)
+    setDeshacer({ v, texto: v.clase === 'tarea' ? `"${v.titulo}" completada` : `"${v.titulo}" marcado como visto` })
+  }
+  const revertir = () => {
+    const { v } = deshacer
+    if (v.clase === 'tarea') toggleTarea(v.id)
+    else toggleEvento(v.id)
+    setDeshacer(null)
+  }
   const diasGrad = daysUntil(GRADUACION.inicio)
   const urg = alertas(state)
   const prox = vencimientos(state).filter((v) => daysUntil(v.fecha) > (state.ajustes?.diasAviso ?? 3)).slice(0, 6)
@@ -61,6 +79,13 @@ export default function Inicio({ ir, abrirTarea, abrirEvento }) {
                     <div className="li-title">{v.clase === 'evento' ? iconoEvento(v) : ''}{v.titulo}{v.tentativo && <em> (a confirmar)</em>}</div>
                     <div className="li-meta"><MateriaTag id={v.materia} /> <Fecha fecha={v.fecha} fechaFin={v.fechaFin} /></div>
                   </div>
+                  <button
+                    className={`btn btn-sm alerta-btn ${v.clase === 'tarea' ? 'btn-ok' : 'btn-ghost'}`}
+                    onClick={(e) => (e.stopPropagation(), despachar(v))}
+                    title={v.clase === 'tarea' ? 'Marcar tarea como completada' : 'Ya lo vi, no mostrar más'}
+                  >
+                    <Icon name="check" size={14} /> {v.clase === 'tarea' ? 'Hecha' : 'Visto'}
+                  </button>
                 </li>
               ))}
             </ul>
@@ -132,6 +157,12 @@ export default function Inicio({ ir, abrirTarea, abrirEvento }) {
           })}
         </div>
       </section>
+      {deshacer && (
+        <div className="toast" role="status">
+          <span>{deshacer.texto}</span>
+          <button className="link" onClick={revertir}>Deshacer</button>
+        </div>
+      )}
     </div>
   )
 }
