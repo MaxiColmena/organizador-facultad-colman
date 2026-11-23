@@ -172,7 +172,9 @@ main { margin-left: var(--sidebar); padding: 32px clamp(16px, 4vw, 48px) 60px; }
 .materia-card p { margin: 0; }
 .mc-top { display: flex; justify-content: space-between; align-items: center; }
 .mc-prox { display: flex; gap: 8px; align-items: baseline; font-size: .85rem; flex-wrap: wrap; }
-.mc-actions { display: flex; gap: 8px; margin-top: auto; }
+.mc-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: auto; }
+.mc-actions .btn { min-width: 0; }
+.mc-actions .btn-ok { grid-column: 1 / -1; }
 .detalle-head { display: flex; gap: 14px; align-items: stretch; }
 .detalle-head .bar { width: 5px; border-radius: 4px; background: var(--c); flex-shrink: 0; }
 .detalle-head p { margin: 4px 0 0; }

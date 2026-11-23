@@ -112,7 +112,7 @@ export default function Materias({ seleccion, setSeleccion, abrirTarea, abrirEve
                 <div className="mc-actions" onClick={(e) => e.stopPropagation()}>
                   <button className="btn btn-ghost btn-sm" onClick={() => abrirTarea(null, { materia: m.id })}><Icon name="plus" size={14} /> Tarea</button>
                   <button className="btn btn-ghost btn-sm" onClick={() => abrirEvento(null, { materia: m.id })}><Icon name="cal" size={14} /> Fecha</button>
-                  <button className="btn btn-ok btn-sm push-right" onClick={() => aprobar(m.id)}><Icon name="check" size={14} /> Aprobada</button>
+                  <button className="btn btn-ok btn-sm" onClick={() => aprobar(m.id)}><Icon name="check" size={14} /> Aprobada</button>
                 </div>
               </article>
             )
